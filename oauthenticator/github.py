@@ -128,7 +128,9 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
 
     @gen.coroutine
     def check_whitelist(self, username):
-        found = super().check_whitelist(username)
+        # No whitelist means any name is allowed, disable this:
+        # https://github.com/jupyterhub/jupyterhub/blob/0.7.2/jupyterhub/auth.py#L148
+        found = self.whitelist and super().check_whitelist(username)
         if not found and self.organisation_whitelist:
             (org_users, etag) = yield self._get_github_org_members_async(
                 self.organisation_whitelist, self.github_organisation_etag)
