@@ -195,8 +195,9 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
             org_users.extend(u['login'] for u in users)
 
             try:
-                links = r.headers['Link'].split(',')
+                current = r
                 r = None
+                links = current.headers['Link'].split(',')
                 for link in links:
                     m = re.match('<([^>]+)>;\s*rel="(\w+)"', link.strip())
                     try:
