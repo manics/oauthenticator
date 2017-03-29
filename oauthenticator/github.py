@@ -130,7 +130,8 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
     def check_whitelist(self, username):
         # No whitelist means any name is allowed, disable this:
         # https://github.com/jupyterhub/jupyterhub/blob/0.7.2/jupyterhub/auth.py#L148
-        found = self.whitelist and super().check_whitelist(username)
+        found = bool(self.whitelist) and super().check_whitelist(username)
+        self.log.debug("Found user '%s'? %s", username, found)
         if not found and self.organisation_whitelist:
             (org_users, etag) = yield self._get_github_org_members_async(
                 self.organisation_whitelist, self.github_organisation_etag)
@@ -176,6 +177,7 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
         req = HTTPRequest(fetch_url, headers=headers)
 
         try:
+            self.log.debug("HTTP request %s %s", req.url, list(req.headers.items()))
             r = yield http_client.fetch(req)
         except HTTPError as e:
             # 304: Not modified
@@ -186,6 +188,8 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
         etag = r.headers.get('etag', '')
 
         while r:
+            self.log.debug("HTTP response %s %s %s %s", r.request.url, r.code,
+                           list(r.headers.items()), r.body)
             fetch_url = ''
             users = json.loads(r.body.decode('utf8', 'replace'))
             org_users.extend(u['login'] for u in users)
@@ -200,6 +204,8 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
                         if link_rel == 'next':
                             fetch_url = link_url
                             req2 = HTTPRequest(fetch_url, headers=headers)
+                            self.log.debug("HTTP request %s %s", req2.url,
+                                           list(req2.headers.items()))
                             r = yield http_client.fetch(req2)
                             break
                     except (AttributeError, ValueError) as e:
