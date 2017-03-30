@@ -13,6 +13,6 @@ from ..github import GitHubOrgOAuthenticator
 ])
 def test_check_whitelist(username, ismember):
     authenticator = GitHubOrgOAuthenticator()
-    authenticator.organisation_whitelist = 'openmicroscopy'
+    authenticator.github_organization_whitelist = ['openmicroscopy']
     found = yield authenticator.check_whitelist(username)
     assert found == ismember

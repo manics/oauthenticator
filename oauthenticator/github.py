@@ -17,7 +17,7 @@ from tornado.httpclient import HTTPRequest, AsyncHTTPClient, HTTPError
 
 from jupyterhub.auth import LocalAuthenticator
 
-from traitlets import Unicode
+from traitlets import Set, Unicode
 
 from .oauth2 import OAuthLoginHandler, OAuthenticator
 
@@ -115,12 +115,17 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
        to a user whitelist
     """
 
-    organisation_whitelist = Unicode(
+    github_organization_whitelist = Set(
         help="""
         Whitelist all users from this single GitHub organisations.
 
         A user must be in the whitelisted organisation or the username
         whitelist.
+
+        TODO: This only supports a single organisation, but is defined as a
+        Set to make it easier to switch to
+        https://github.com/jupyterhub/oauthenticator/pull/58
+        when it's ready
         """
     ).tag(config=True)
 
@@ -132,9 +137,10 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
         # https://github.com/jupyterhub/jupyterhub/blob/0.7.2/jupyterhub/auth.py#L148
         found = bool(self.whitelist) and super().check_whitelist(username)
         self.log.debug("Found user '%s'? %s", username, found)
-        if not found and self.organisation_whitelist:
+        if not found and self.github_organization_whitelist:
             (org_users, etag) = yield self._get_github_org_members_async(
-                self.organisation_whitelist, self.github_organisation_etag)
+                list(self.github_organization_whitelist)[0],
+                self.github_organisation_etag)
             if org_users is not None:
                 self.log.info(
                     "Adding users to whitelist from organisation")
