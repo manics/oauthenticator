@@ -143,10 +143,12 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
                 self.github_organisation_etag)
             if org_users is not None:
                 self.log.info(
-                    "Adding users to whitelist from organisation")
+                    "Adding users to whitelist from organisation: %s",
+                    org_users)
                 self.whitelist.update(org_users)
                 self.github_organisation_etag = etag
-            found = super().check_whitelist(username)
+            found = bool(self.whitelist) and super().check_whitelist(username)
+            self.log.debug("Found user '%s'? %s", username, found)
         return found
 
     @gen.coroutine
