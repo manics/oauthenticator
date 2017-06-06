@@ -143,10 +143,12 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
                 self.github_organisation_etag)
             if org_users is not None:
                 self.log.info(
-                    "Adding users to whitelist from organisation")
+                    "Adding users to whitelist from organisation: %s",
+                    org_users)
                 self.whitelist.update(org_users)
                 self.github_organisation_etag = etag
-            found = super().check_whitelist(username)
+            found = bool(self.whitelist) and super().check_whitelist(username)
+            self.log.debug("Found user '%s'? %s", username, found)
         return found
 
     @gen.coroutine
@@ -162,6 +164,7 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
         :return: A tuple (list of usernames, current-etag) if `etag` was empty
                  or the list of users has changed since the provided `etag`.
                  `(None, None)` if the information has not changed since `etag`.
+                 Usernames are lower-cased.
         """
         http_client = AsyncHTTPClient()
         params = dict(
@@ -198,7 +201,13 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
                            list(r.headers.items()), r.body)
             fetch_url = ''
             users = json.loads(r.body.decode('utf8', 'replace'))
-            org_users.extend(u['login'] for u in users)
+
+            # We could use normalize_username
+            # https://github.com/jupyterhub/jupyterhub/blob/0.7.2/jupyterhub/auth.py#L128
+            # but if this changes it's possible github usernames could be
+            # incorrectly mapped and accepted, so lower-case only since we
+            # know it's safe
+            org_users.extend(u['login'].lower() for u in users)
 
             try:
                 current = r
