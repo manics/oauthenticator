@@ -1,4 +1,5 @@
 from pytest import mark
+from os import getenv
 
 from ..github import GitHubOrgOAuthenticator
 
@@ -6,6 +7,12 @@ from ..github import GitHubOrgOAuthenticator
 #logging.basicConfig(level=logging.DEBUG)
 
 
+# This is likely to fail on Travis due to Github rate limits:
+# https://developer.github.com/v3/#rate-limiting
+@mark.xfail(
+    getenv('TRAVIS') == 'true',
+    reason="Travis exceeds Github API rate limits"
+)
 @mark.gen_test
 @mark.parametrize("username,ismember", [
     ('not-in-org', False),
