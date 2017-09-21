@@ -1,1 +1,3 @@
-jupyterhub>=0.5
+# Upstream has modifications to work with jupyterhub 0.8
+# For now pin the jupyterhub version
+jupyterhub==0.7.2
