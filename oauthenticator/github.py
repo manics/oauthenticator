@@ -69,8 +69,8 @@ class GitHubOAuthenticator(OAuthenticator):
         
         # GitHub specifies a POST request yet requires URL parameters
         params = dict(
-            client_id=self.client_id,
-            client_secret=self.client_secret,
+            client_id=self.get_client_id(handler),
+            client_secret=self.get_client_secret(handler),
             code=code
         )
         
@@ -167,9 +167,12 @@ class GitHubOrgOAuthenticator(GitHubOAuthenticator):
                  Usernames are lower-cased.
         """
         http_client = AsyncHTTPClient()
+        # We don't have a handler object in this method so this will return
+        # the default client_* which is fine because they should all be for
+        # the same owner
         params = dict(
-            client_id=self.client_id,
-            client_secret=self.client_secret,
+            client_id=self.get_client_id(),
+            client_secret=self.get_client_secret(),
         )
         github_org_url = 'https://api.github.com/orgs/%s/members'
         fetch_url = url_concat(github_org_url % github_org, params)

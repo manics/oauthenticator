@@ -13,7 +13,7 @@ from jupyterhub.handlers import BaseHandler
 from jupyterhub.auth import Authenticator
 from jupyterhub.utils import url_path_join
 
-from traitlets import Unicode, Bool
+from traitlets import Unicode, Bool, Dict
 
 
 def guess_callback_uri(protocol, host, hub_server_url):
@@ -39,7 +39,7 @@ class OAuthLoginHandler(BaseHandler):
         self.log.info('oauth redirect: %r', redirect_uri)
         self.authorize_redirect(
             redirect_uri=redirect_uri,
-            client_id=self.authenticator.client_id,
+            client_id=self.authenticator.get_client_id(self),
             scope=self.scope,
             response_type='code')
 
@@ -97,6 +97,24 @@ class OAuthenticator(Authenticator):
         else:
             return True
 
+    oauth_callback_url_hostmap = Dict(
+        config=True,
+        help="""Map of hostname to oauth_callback_url. This allows jupyterhub
+        to run behind multiple hostnames"""
+    )
+
+    client_id_hostmap = Dict(
+        config=True,
+        help="""Map of hostname to client_id. This allows jupyterhub
+        to run behind multiple hostnames"""
+    )
+
+    client_secret_hostmap = Dict(
+        config=True,
+        help="""Map of hostname to client_secret. This allows jupyterhub
+        to run behind multiple hostnames"""
+    )
+
     def login_url(self, base_url):
         return url_path_join(base_url, 'oauth_login')
 
@@ -108,6 +126,10 @@ class OAuthenticator(Authenticator):
         
         Either from config or guess based on the current request.
         """
+        try:
+            return self.oauth_callback_url_hostmap[handler.request.host]
+        except (AttributeError, KeyError):
+            pass
         if self.oauth_callback_url:
             return self.oauth_callback_url
         elif handler:
@@ -118,6 +140,22 @@ class OAuthenticator(Authenticator):
             )
         else:
             raise ValueError("Specify callback oauth_callback_url or give me a handler to guess with")
+
+    def get_client_id(self, handler=None):
+        """Get OAuth client_id
+        """
+        try:
+            return self.client_id_hostmap[handler.request.host]
+        except (AttributeError, KeyError):
+            return self.client_id
+
+    def get_client_secret(self, handler=None):
+        """Get OAuth client_secret
+        """
+        try:
+            return self.client_secret_hostmap[handler.request.host]
+        except (AttributeError, KeyError):
+            return self.client_secret
 
     def get_handlers(self, app):
         return [
