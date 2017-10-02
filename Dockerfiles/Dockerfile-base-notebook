@@ -1,0 +1,2 @@
+FROM jupyter/base-notebook
+RUN pip install -U jupyterhub==0.8.0rc2
