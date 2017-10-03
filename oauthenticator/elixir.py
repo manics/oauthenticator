@@ -45,7 +45,7 @@ def decode_jwt_details(token):
     rem = len(details) % 4
     if rem > 0:
         details += '=' * (4 - rem)
-    j = base64.urlsafe_b64decode(details)
+    j = base64.urlsafe_b64decode(details).decode('utf-8')
     return json.loads(j)
 
 
