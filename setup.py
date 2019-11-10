@@ -37,7 +37,7 @@ with open(pjoin(here, 'oauthenticator', '_version.py')) as f:
 
 
 setup_args = dict(
-    name                = 'oauthenticator',
+    name                = 'oauthenticator-testpypi',
     packages            = ['oauthenticator'],
     version             = version_ns['__version__'],
     description         = "OAuthenticator: Authenticate JupyterHub users with common OAuth providers",
