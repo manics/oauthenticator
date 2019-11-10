@@ -38,6 +38,5 @@ jobs:
         password: $PYPI_TOKEN
         # Remove for deployment to official PyPi repo
         server: https://test.pypi.org/legacy/
-        skip_existing: true
         on:
           tags: true
