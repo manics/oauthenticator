@@ -38,6 +38,7 @@ jobs:
         user: __token__
         # password: $PYPI_PASSWORD
         # Remove for deployment to official PyPi repo
+        distributions: sdist bdist_wheel
         server: https://test.pypi.org/legacy/
         on:
           tags: true
