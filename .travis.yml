@@ -36,7 +36,7 @@ jobs:
       deploy:
         provider: pypi
         user: __token__
-        password: $PYPI_TOKEN
+        # password: $PYPI_PASSWORD
         # Remove for deployment to official PyPi repo
         server: https://test.pypi.org/legacy/
         on:
